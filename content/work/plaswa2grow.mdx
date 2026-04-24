@@ -1,0 +1,73 @@
+export const metadata = {
+  title: "Plaswa2Grow — Konversi plastik jadi nutrisi tanaman",
+  description:
+    "Alat hardware yang memanaskan limbah plastik terkontrol untuk menghasilkan biochar yang digunakan sebagai media tanam — dengan kontrol PID dan dashboard realtime.",
+  category: "hardware",
+  year: "2025",
+}
+
+## Masalah
+
+Limbah plastik rumah tangga di Indonesia mayoritas berakhir di TPA atau sungai. Sebagian penelitian menunjukkan bahwa plastik tertentu (PP, PE) bisa dikarbonisasi pada suhu terkontrol untuk menghasilkan struktur mikro-porus yang berguna sebagai media tanam — mirip biochar dari biomassa.
+
+Pertanyaannya: bisakah proses ini dijalankan di tingkat rumah tangga, dengan alat yang aman dan sederhana?
+
+**Plaswa2Grow** adalah upaya untuk menjawabnya.
+
+---
+
+## Desain Sistem
+
+Inti alatnya adalah reaktor stainless steel kecil yang dipanaskan lewat elemen nichrome. Kunci keseluruhannya adalah *kontrol suhu presisi*: kalau terlalu rendah, plastik tidak terkonversi; kalau terlalu tinggi, muncul zat berbahaya.
+
+### Control loop
+
+Saya implementasi kontroler PID di ESP32 dengan:
+
+- Thermocouple tipe K sebagai feedback
+- PWM solid-state relay untuk aktuasi elemen pemanas
+- Window 20°C di sekitar setpoint (380°C) dengan overshoot < 5°C
+
+Proses tuning PID-nya menghabiskan waktu sekitar 2 minggu. Saya akhirnya pakai metode Ziegler-Nichols untuk initial guess dan fine-tune manual.
+
+### Keamanan
+
+Saya tidak main-main di bagian ini. Tiga layer proteksi:
+
+1. Thermal fuse 450°C sebagai *hardware last line*
+2. Watchdog timer di ESP32 yang mematikan heater jika loop kontrol hang
+3. Tutup reaktor interlocked — heater tidak menyala kalau tutup terbuka
+
+### Dashboard
+
+Data temperatur, durasi proses, dan estimasi produk disampaikan via WiFi ke dashboard web (Next.js + WebSocket). Pengguna bisa memilih preset proses (plastik jenis apa, durasi berapa) dan melihat grafik realtime.
+
+---
+
+## Hasil & Validasi
+
+Setelah 3 iterasi prototipe:
+
+- Konversi ~80% massa plastik menjadi bentuk karbon padat
+- Hasil diuji sebagai campuran media tanam cabai: germination rate naik ~12% vs kontrol
+- Alat berjalan stabil 4+ jam tanpa intervensi manual
+
+Plaswa2Grow menjadi finalis National Engineering Competition 2025 kategori hardware.
+
+---
+
+## Pelajaran
+
+**Safety bukan fitur tambahan.** Setiap keputusan desain — dari ketebalan dinding reaktor sampai posisi tombol darurat — saya evaluasi ulang dengan lensa: apa yang terjadi kalau ini gagal?
+
+**Prototipe itu murah, iterasi mahal.** Saya berharap bisa jump straight ke versi final, tapi tiap iterasi mengajarkan sesuatu yang tidak bisa diprediksi di paper — seperti bagaimana sifat panas berbeda antara SS304 dan SS316.
+
+**PID itu lebih seni daripada sains.** Walau ada rumus, sense tuning yang benar cuma datang setelah puluhan trial.
+
+---
+
+## Yang Akan Datang
+
+- Sensor gas untuk deteksi senyawa berbahaya (VOC)
+- Model ML untuk memprediksi kualitas output dari kurva suhu
+- Desain yang bisa di-DIY oleh komunitas tanpa workshop metal

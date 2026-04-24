@@ -1,0 +1,59 @@
+export const metadata = {
+  title: "Vortexa — Smart monitoring untuk turbin angin kecil",
+  description:
+    "Sistem end-to-end yang menghubungkan ESP32, sensor angin, dan model ML sederhana untuk memprediksi output daya harian pada turbin angin skala kecil di daerah pesisir.",
+  category: "iot · ml",
+  year: "2025",
+}
+
+## Konteks
+
+Di daerah pesisir Bali, banyak komunitas punya potensi energi angin yang cukup untuk kebutuhan listrik rumah tangga, tapi belum ada cara sederhana untuk mengukur dan memprediksi produksinya. Turbin skala kecil yang dijual di pasar biasanya datang tanpa monitoring; pemilik hanya tahu ada listrik atau tidak.
+
+**Vortexa** adalah percobaan saya untuk mengisi celah itu: sebuah modul tempel yang bisa dipasang di turbin existing, membaca kecepatan angin dan output listrik, lalu memprediksi produksi harian berdasarkan pola lokal.
+
+---
+
+## Arsitektur Sistem
+
+Saya memecah sistem menjadi tiga lapisan:
+
+1. **Node** — ESP32 + anemometer reed switch + sensor tegangan & arus DC
+2. **Edge** — Raspberry Pi di rumah pemilik, menerima data lewat ESP-NOW
+3. **Model** — regressor sederhana (Gradient Boosting) yang dilatih per-lokasi
+
+Keputusan paling penting adalah memisahkan inference dari akuisisi. ESP32 bertanggung jawab hanya untuk membaca sensor dan mengirim paket kecil tiap 10 detik. Semua logika prediksi berjalan di edge device — ini membuat debugging jauh lebih mudah.
+
+---
+
+## Tantangan
+
+### 1. Sensor angin yang *noisy*
+
+Anemometer reed switch sensitif terhadap getaran mekanis, jadi reading awal saya banyak *false pulse*. Saya akhirnya memakai filter debounce di ESP32 (minimum 8ms antar-pulse) dan memvalidasi dengan anemometer ultrasonik selama 2 minggu. Setelah itu, error rata-rata turun ke ~3%.
+
+### 2. Daya untuk sistem monitoring sendiri
+
+Modul monitoring tidak boleh *menghabiskan* listrik yang diukur. Saya desain ulang supaya ESP32 tidur di deep sleep antar-reading dan hanya bangun untuk mengirim data. Konsumsi rata-rata akhirnya di bawah 20 mA — dapat ditopang oleh solar panel kecil 5W.
+
+### 3. Model yang generalizable
+
+Pola angin di setiap lokasi berbeda, jadi satu model global tidak pernah bagus. Saya buat pipeline fine-tuning per-lokasi: 2 minggu data awal, retrain harian. MAE turun dari 18% (model global) ke 7% (per-lokasi).
+
+---
+
+## Hasil
+
+- Prototype dipasang di 3 lokasi berbeda di Bali selatan
+- Prediksi harian dengan MAE ~7% setelah 2 minggu pelatihan lokal
+- Total biaya modul < Rp 350.000 — terjangkau untuk komunitas kecil
+
+---
+
+## Yang Akan Saya Lakukan Berbeda
+
+- Mulai dengan anemometer ultrasonik dari awal — murah di jangka panjang
+- Pakai LoRa alih-alih ESP-NOW untuk jangkauan lebih jauh
+- Tambahkan validasi cuaca dari BMKG sebagai fitur tambahan
+
+Vortexa adalah project pertama di mana saya menyadari bahwa *engineering adalah proses iterasi, bukan desain sekali jadi*. Versi pertama jelek; versi keempat cukup. Itu sudah kemajuan besar.
