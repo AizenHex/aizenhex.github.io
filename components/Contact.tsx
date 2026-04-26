@@ -56,7 +56,7 @@ export function Contact() {
     <section
       id="contact"
       aria-labelledby="contact-heading"
-      className="py-24 md:py-36 border-t border-border"
+      className="py-16 md:py-36 border-t border-border"
     >
       <div className="max-w-[720px] mx-auto px-6 md:px-12">
         <FadeIn>
@@ -65,7 +65,7 @@ export function Contact() {
 
         <FadeIn delay={0.05}>
           {/* Terminal window outer */}
-          <div className="relative min-h-[360px]">
+          <div className="relative min-h-[320px] sm:min-h-[360px]">
             <div
               ref={winRef}
               id="contact-win"
@@ -94,24 +94,43 @@ export function Contact() {
                 </span>
               </div>
 
-              {/* Body: sidebar + main */}
-              <div className="flex min-h-[260px]">
-                {/* Sidebar */}
+              {/* Body: sidebar + main — stacked on mobile, side-by-side on sm+ */}
+              <div className="flex flex-col sm:flex-row min-h-[260px]">
+                {/* Sidebar — horizontal tabs on mobile, vertical list on sm+ */}
                 <div
-                  className="w-[160px] shrink-0 py-4"
+                  className="sm:w-[160px] sm:shrink-0 sm:py-4"
                   style={{ background: "#141614", borderRight: "1px solid rgba(255,255,255,0.07)" }}
                 >
                   <div
-                    className="text-[10px] uppercase tracking-[0.1em] px-[14px] pb-[10px]"
+                    className="hidden sm:block text-[10px] uppercase tracking-[0.1em] px-[14px] pb-[10px]"
                     style={{ color: "rgba(255,255,255,0.3)" }}
                   >
                     Info
                   </div>
+                  {/* Mobile: horizontal tabs */}
+                  <div className="flex sm:hidden" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                    {navItems.map(({ id, icon, label }) => (
+                      <button
+                        key={id}
+                        onClick={() => setActivePanel(id)}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-2 py-[10px] text-[12px] transition-colors duration-100 border-b-2"
+                        style={{
+                          color: activePanel === id ? "#4EBF6A" : "rgba(255,255,255,0.45)",
+                          background: activePanel === id ? "rgba(78,191,106,0.06)" : "transparent",
+                          borderBottomColor: activePanel === id ? "#4EBF6A" : "transparent",
+                        }}
+                      >
+                        <span className="text-[12px]">{icon}</span>
+                        <span>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {/* Desktop: vertical list */}
                   {navItems.map(({ id, icon, label }) => (
                     <button
                       key={id}
                       onClick={() => setActivePanel(id)}
-                      className="w-full flex items-center gap-2 px-[14px] py-[7px] text-[12px] transition-colors duration-100 border-l-2 text-left"
+                      className="hidden sm:flex w-full items-center gap-2 px-[14px] py-[7px] text-[12px] transition-colors duration-100 border-l-2 text-left"
                       style={{
                         color: activePanel === id ? "#4EBF6A" : "rgba(255,255,255,0.45)",
                         background: activePanel === id ? "rgba(78,191,106,0.08)" : "transparent",
@@ -238,8 +257,11 @@ export function Contact() {
                 </div>
               </div>
             </div>
-            <p className="mt-[10px] font-mono text-[11px] text-ink-muted opacity-55">
+            <p className="mt-[10px] font-mono text-[11px] text-ink-muted opacity-55 hidden sm:block">
               // drag the window · click sidebar to switch panels
+            </p>
+            <p className="mt-[10px] font-mono text-[11px] text-ink-muted opacity-55 sm:hidden">
+              // tap tabs to switch panels
             </p>
           </div>
         </FadeIn>

@@ -49,9 +49,9 @@ export default function NowPage() {
             {now.items.map((item) => (
               <div
                 key={item.label}
-                className="grid grid-cols-[auto_1fr] gap-x-6 md:gap-x-10 border-b border-border pb-8 last:border-b-0"
+                className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-y-1 sm:gap-x-6 md:gap-x-10 border-b border-border pb-8 last:border-b-0"
               >
-                <dt className="font-mono text-[0.8125rem] text-accent shrink-0 w-24 md:w-32 pt-1 uppercase tracking-wider">
+                <dt className="font-mono text-[0.8125rem] text-accent shrink-0 sm:w-24 md:w-32 sm:pt-1 uppercase tracking-wider">
                   {item.label}
                 </dt>
                 <dd className="font-mono text-[0.9375rem] text-ink leading-[1.75]">

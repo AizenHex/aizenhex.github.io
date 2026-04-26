@@ -11,7 +11,7 @@ export function Writing() {
     <section
       id="writing"
       aria-labelledby="writing-heading"
-      className="py-24 md:py-36 border-t border-border"
+      className="py-16 md:py-36 border-t border-border"
     >
       <div className="max-w-[780px] mx-auto px-6 md:px-12">
         <FadeIn>
@@ -25,10 +25,11 @@ export function Writing() {
                 href={`/writing/${post.slug}`}
                 className="group block py-6 border-b border-border hover:border-accent-hover transition-colors duration-150"
               >
-                <div className="flex items-baseline gap-6 mb-2">
+                {/* Mobile: date above title; sm+: date inline with title */}
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-6 gap-1 mb-2">
                   <time
                     dateTime={post.date}
-                    className="font-mono text-[0.8125rem] text-ink-muted shrink-0 w-16 tabular-nums"
+                    className="font-mono text-[0.75rem] sm:text-[0.8125rem] text-ink-muted shrink-0 sm:w-16 tabular-nums"
                   >
                     {post.date}
                   </time>
@@ -36,7 +37,7 @@ export function Writing() {
                     {post.title}
                   </span>
                 </div>
-                <div className="pl-[5.5rem] md:pl-[5.5rem]">
+                <div className="sm:pl-[5.5rem]">
                   <p className="font-mono text-[0.8125rem] text-ink-muted leading-[1.75] max-w-[58ch]">
                     {post.excerpt}
                   </p>

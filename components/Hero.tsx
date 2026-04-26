@@ -19,7 +19,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative max-w-[720px] mx-auto px-6 md:px-12 py-24 md:py-32">
+      <div className="relative max-w-[720px] mx-auto px-6 md:px-12 py-16 md:py-32">
         {/* Boot sequence lines */}
         <div className="mb-7 hero-line" aria-hidden style={{ animationDelay: "200ms" }}>
           <p className="font-mono text-[0.8125rem] text-ink-muted leading-[1.8]">

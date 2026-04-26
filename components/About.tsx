@@ -14,7 +14,7 @@ export function About() {
     <section
       id="about"
       aria-labelledby="about-heading"
-      className="py-24 md:py-36 border-t border-border part"
+      className="py-16 md:py-36 border-t border-border part"
     >
       <div className="max-w-[1100px] mx-auto px-6 md:px-12">
         <FadeIn>
