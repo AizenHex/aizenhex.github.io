@@ -1,36 +1,12 @@
 import { SectionHeader } from "@/components/SectionHeader"
 import { FadeIn } from "@/components/FadeIn"
 import Link from "next/link"
-
-export const posts = [
-  {
-    slug: "belajar-cross-domain",
-    date: "2026-03",
-    title:
-      "Belajar cross-domain: kenapa Elektro × ML × IoT terasa seperti satu bahasa",
-    excerpt:
-      "Catatan pendek tentang melihat sensor, model, dan firmware sebagai bagian dari sistem yang sama — bukan tiga mata kuliah terpisah.",
-    readTime: "4 min",
-  },
-  {
-    slug: "esp32-dan-kesabaran",
-    date: "2026-01",
-    title: "ESP32, watchdog, dan kesabaran: tiga bulan debugging sensor angin",
-    excerpt:
-      "Tentang reset yang tidak bisa dijelaskan, power budget yang bocor, dan kenapa oscilloscope adalah teman terbaik engineer embedded.",
-    readTime: "7 min",
-  },
-  {
-    slug: "nlp-bahasa-indonesia",
-    date: "2025-11",
-    title: "NLP bahasa Indonesia itu susah — dan itu kenapa menarik",
-    excerpt:
-      "Catatan dari proyek klasifikasi gejala pasien: tokenisasi, slang daerah, dan kenapa dataset publik sering tidak cukup.",
-    readTime: "6 min",
-  },
-]
+import { getAllWriting } from "@/lib/content"
 
 export function Writing() {
+  const allPosts = getAllWriting()
+  const posts = allPosts.slice(0, 3)
+
   return (
     <section
       id="writing"

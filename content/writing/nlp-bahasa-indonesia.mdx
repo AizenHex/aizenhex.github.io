@@ -1,0 +1,20 @@
+export const metadata = {
+  date: "2025-11",
+  title: "NLP bahasa Indonesia itu susah — dan itu kenapa menarik",
+  excerpt: "Catatan dari proyek klasifikasi gejala pasien: tokenisasi, slang daerah, dan kenapa dataset publik sering tidak cukup.",
+  readTime: "6 min",
+}
+
+Bahasa Indonesia yang dipakai di paper ML dan bahasa Indonesia yang dipakai perawat di puskesmas adalah dua bahasa yang berbeda.
+
+## Contoh
+
+- "ph" bisa berarti "pasien hamil" atau "phase" atau typo
+- "dbn" — "demam badan" — tidak ada di dataset manapun
+- Tokenizer subword memecah istilah medis jadi fragmen yang tidak bermakna
+
+## Apa yang membantu
+
+Normalisasi agresif sebelum tokenisasi. Saya buat kamus 200+ singkatan medis dari wawancara perawat. Itu menaikkan F1 lebih banyak daripada ganti model.
+
+Kesimpulan yang tidak seksi: *pre-processing adalah 60% dari pekerjaan.*
