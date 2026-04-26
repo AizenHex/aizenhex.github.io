@@ -1,11 +1,11 @@
 import { SectionHeader } from "@/components/SectionHeader"
 import { FadeIn } from "@/components/FadeIn"
 
-const stack = [
+const stackRows = [
   ["Python", "PyTorch", "TensorFlow"],
   ["C/C++", "Arduino", "ESP32"],
   ["Next.js", "React", "TypeScript"],
-  ["MATLAB", "Simulink", "LTspice"],
+  ["MATLAB", "Simulink"],
   ["Figma", "Git", "Linux"],
 ]
 
@@ -14,7 +14,7 @@ export function About() {
     <section
       id="about"
       aria-labelledby="about-heading"
-      className="py-24 md:py-36 border-t border-border"
+      className="py-24 md:py-36 border-t border-border part"
     >
       <div className="max-w-[1100px] mx-auto px-6 md:px-12">
         <FadeIn>
@@ -52,14 +52,13 @@ export function About() {
               <p className="font-mono text-[0.8125rem] text-accent mb-4 select-none font-medium" aria-hidden>
                 $ stack --list
               </p>
-              <div className="space-y-3">
-                {stack.map((row, i) => (
-                  <p
-                    key={i}
-                    className="font-mono text-[0.8125rem] text-ink-muted leading-relaxed"
-                  >
-                    {row.join(" · ")}
-                  </p>
+              <div className="flex flex-col gap-2">
+                {stackRows.map((row, i) => (
+                  <div key={i} className="flex flex-wrap gap-1.5">
+                    {row.map((tech) => (
+                      <span key={tech} className="stack-chip">{tech}</span>
+                    ))}
+                  </div>
                 ))}
               </div>
             </aside>
