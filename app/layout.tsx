@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Fraunces, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/ThemeProvider"
+import { CommandPalette } from "@/components/CommandPalette"
 import "./globals.css"
 
 const fraunces = Fraunces({
@@ -43,6 +44,7 @@ export default function RootLayout({
           >
             Langsung ke konten
           </a>
+          <CommandPalette />
           {children}
         </ThemeProvider>
       </body>

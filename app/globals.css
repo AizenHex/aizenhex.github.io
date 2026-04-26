@@ -18,7 +18,7 @@
   --bg:           #0D0F0C;
   --surface:      #141710;
   --ink:          #C8D4BE;
-  --ink-muted:    #5A6654;
+  --ink-muted:    #8A9484;
   --accent:       #4EBF6A;
   --accent-hover: #FFB800;
   --border:       #1F2420;
@@ -118,6 +118,61 @@ body {
   border-radius: 2px;
 }
 
+/* ── Stack chips ── */
+.stack-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  transition: border-color 120ms, color 120ms;
+}
+.stack-chip:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+/* ── Hero entrance animation ── */
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.hero-line {
+  opacity: 0;
+  animation: heroIn 500ms ease forwards;
+}
+
+/* ── Section divider accent pulse ── */
+.part {
+  position: relative;
+}
+.part::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1px;
+  width: 60px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: current-pulse 6s ease-in-out infinite;
+}
+@keyframes current-pulse {
+  0%   { transform: translateX(-80px); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(calc(100vw + 80px)); opacity: 0; }
+}
+
+/* ── Scroll-hide scrollbars ── */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; -ms-overflow-style: none; }
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -131,5 +186,15 @@ body {
   .cursor-blink {
     animation: none;
     opacity: 1;
+  }
+
+  .hero-line {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .part::before {
+    display: none;
   }
 }
