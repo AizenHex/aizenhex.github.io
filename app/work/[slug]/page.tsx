@@ -2,6 +2,8 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
+import fs from "fs"
+import path from "path"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -10,7 +12,7 @@ interface PageProps {
 export default async function CaseStudyPage({ params }: PageProps) {
   const { slug } = await params
 
-  let Post: React.ComponentType
+  let Post!: React.ComponentType
   let metadata: { title?: string; description?: string; category?: string; year?: string } = {}
 
   try {
@@ -70,11 +72,9 @@ export default async function CaseStudyPage({ params }: PageProps) {
 }
 
 export function generateStaticParams() {
-  return [
-    { slug: "vortexa" },
-    { slug: "plaswa2grow" },
-    { slug: "nlp-for-health" },
-  ]
+  const workDir = path.join(process.cwd(), "content/work")
+  const files = fs.readdirSync(workDir).filter((f) => f.endsWith(".mdx"))
+  return files.map((f) => ({ slug: f.replace(/\.mdx$/, "") }))
 }
 
 export const dynamicParams = false

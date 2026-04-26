@@ -1,0 +1,24 @@
+export const metadata = {
+  date: "2026-01",
+  title: "ESP32, watchdog, dan kesabaran: tiga bulan debugging sensor angin",
+  excerpt: "Tentang reset yang tidak bisa dijelaskan, power budget yang bocor, dan kenapa oscilloscope adalah teman terbaik engineer embedded.",
+  readTime: "7 min",
+}
+
+Proyek Vortexa seharusnya selesai dalam 4 minggu. Ia selesai dalam 14. Dan 10 minggu tambahan itu, sebagian besar, dihabiskan dengan menatap layar oscilloscope.
+
+## Gejala
+
+ESP32 di node sensor reset secara random — kadang 3 kali per hari, kadang seminggu sekali. Log tidak menyimpan apa-apa karena reset terjadi sebelum flush.
+
+## Hipotesis yang salah
+
+- "Pasti WiFi stack crash" — bukan, disable WiFi masih reset
+- "Pasti power supply" — ukur, clean 3.3V
+- "Pasti bug di kode saya" — unit test hijau semua
+
+## Yang akhirnya benar
+
+Anemometer reed switch saya menghasilkan *inductive kick* kecil yang masuk ke GPIO dan kadang memicu watchdog reset. Solusi: flyback diode sederhana 10 sen.
+
+Pelajaran: hardware itu analog bahkan ketika kita pura-pura ia digital.

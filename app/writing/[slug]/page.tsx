@@ -2,7 +2,9 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
-import { posts } from "@/components/Writing"
+import { getWritingBySlug } from "@/lib/content"
+import fs from "fs"
+import path from "path"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -11,16 +13,15 @@ interface PageProps {
 export default async function WritingPostPage({ params }: PageProps) {
   const { slug } = await params
 
-  const meta = posts.find((p) => p.slug === slug)
-  if (!meta) notFound()
+  let result: Awaited<ReturnType<typeof getWritingBySlug>>
 
-  let Post: React.ComponentType | null = null
   try {
-    const mod = await import(`@/content/writing/${slug}.mdx`)
-    Post = mod.default
+    result = await getWritingBySlug(slug)
   } catch {
-    Post = null
+    notFound()
   }
+
+  const { metadata, default: Post } = result!
 
   return (
     <>
@@ -39,25 +40,18 @@ export default async function WritingPostPage({ params }: PageProps) {
           </p>
 
           <h1 className="font-serif text-[clamp(2rem,5vw,3.25rem)] font-medium text-ink leading-tight tracking-[-0.02em] mb-6">
-            {meta!.title}
+            {metadata.title}
           </h1>
 
           <p className="font-mono text-[0.875rem] text-ink-muted border-t border-border pt-6 flex gap-4">
-            <time dateTime={meta!.date}>{meta!.date}</time>
+            <time dateTime={metadata.date}>{metadata.date}</time>
             <span aria-hidden>·</span>
-            <span>{meta!.readTime}</span>
+            <span>{metadata.readTime}</span>
           </p>
         </div>
 
         <div className="max-w-[720px] mx-auto px-6 md:px-12 pb-32">
-          {Post ? (
-            <Post />
-          ) : (
-            <div className="font-mono text-[0.9375rem] text-ink-muted leading-[1.75] space-y-5">
-              <p>{meta!.excerpt}</p>
-              <p className="text-accent">// draft — full content coming soon.</p>
-            </div>
-          )}
+          <Post />
         </div>
       </main>
       <Footer />
@@ -66,7 +60,9 @@ export default async function WritingPostPage({ params }: PageProps) {
 }
 
 export function generateStaticParams() {
-  return posts.map((p) => ({ slug: p.slug }))
+  const writingDir = path.join(process.cwd(), "content/writing")
+  const files = fs.readdirSync(writingDir).filter((f) => f.endsWith(".mdx"))
+  return files.map((f) => ({ slug: f.replace(/\.mdx$/, "") }))
 }
 
 export const dynamicParams = false
