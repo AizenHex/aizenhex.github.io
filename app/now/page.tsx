@@ -1,36 +1,12 @@
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import Link from "next/link"
+import { now } from "@/content/now"
 
 export const metadata = {
   title: "Now — Made Reeyza",
   description: "Apa yang sedang saya kerjakan sekarang.",
 }
-
-const updated = "April 2026"
-
-const nowItems: { label: string; body: string }[] = [
-  {
-    label: "working on",
-    body: "Vortexa v2 — integrasi model prediksi angin dengan data BMKG, dan merapikan dashboard yang sebelumnya dibuat buru-buru menjelang kompetisi.",
-  },
-  {
-    label: "learning",
-    body: "State-space models (S4, Mamba) untuk time-series sensor, dan embedded Rust sebagai alternatif untuk firmware yang lebih aman.",
-  },
-  {
-    label: "reading",
-    body: "Designing Data-Intensive Applications (Kleppmann), dan paper-paper soal edge ML deployment di perangkat konsumsi rendah.",
-  },
-  {
-    label: "building",
-    body: "Sistem monitoring kualitas air untuk tambak ikan lokal di Bali — masih di tahap riset lapangan, belum prototype.",
-  },
-  {
-    label: "not doing",
-    body: "Side project baru. Saya mencoba disiplin untuk menyelesaikan yang sudah ada sebelum memulai yang baru — sulit tapi penting.",
-  },
-]
 
 export default function NowPage() {
   return (
@@ -66,11 +42,11 @@ export default function NowPage() {
             {" "}— apa yang sedang saya fokuskan, diupdate secara berkala.
           </p>
           <p className="font-mono text-[0.8125rem] text-ink-muted border-t border-border pt-4 mt-8 mb-12">
-            last updated: {updated}
+            last updated: {now.updated}
           </p>
 
           <dl className="space-y-8">
-            {nowItems.map((item) => (
+            {now.items.map((item) => (
               <div
                 key={item.label}
                 className="grid grid-cols-[auto_1fr] gap-x-6 md:gap-x-10 border-b border-border pb-8 last:border-b-0"
