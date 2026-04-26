@@ -30,6 +30,15 @@ const projects = [
     year: "2024",
     color: "#C4B8C4",
   },
+  {
+    slug: "template-project",
+    title: "Template Project",
+    description:
+      "Deskripsi template proyek yang bisa digunakan sebagai referensi untuk proyek-proyek baru.",
+    category: "template",
+    year: "2024",
+    color: "#C4B8C4",
+  },
 ]
 
 export function Work() {
