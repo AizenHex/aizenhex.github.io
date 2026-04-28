@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"D:\\\\Agentic-Project\\\\Portofoliowebsite-development\\\\aizenhex.github.io\" branch -a)",
+      "Bash(git -C \"D:\\\\Agentic-Project\\\\Portofoliowebsite-development\\\\aizenhex.github.io\" status)",
+      "Bash(git -C \"D:\\\\Agentic-Project\\\\Portofoliowebsite-development\\\\aizenhex.github.io\" diff --stat)",
+      "Bash(git -C \"D:\\\\Agentic-Project\\\\Portofoliowebsite-development\\\\aizenhex.github.io\" add app/now/page.tsx components/About.tsx components/Contact.tsx components/Experience.tsx components/Header.tsx components/Hero.tsx components/Work.tsx components/Writing.tsx)",
+      "Bash(git -C 'D:\\\\Agentic-Project\\\\Portofoliowebsite-development\\\\aizenhex.github.io' commit -m ' *)",
+      "Bash(git -C \"D:\\\\Agentic-Project\\\\Portofoliowebsite-development\\\\aizenhex.github.io\" push origin main)"
+    ]
+  }
+}
