@@ -1,42 +1,74 @@
-export type ExperienceEntry = {
+export type ExperienceTrackId = "education" | "competition" | "organization" | "work"
+
+export type ExperienceItem = {
   period: string
   role: string
   org: string
   location?: string
-  note?: string
-  kind: "work" | "edu"
 }
 
-export const experience: ExperienceEntry[] = [
+export type ExperienceTrack = {
+  id: ExperienceTrackId
+  label: string
+  items: ExperienceItem[]
+}
+
+export const experienceTracks: ExperienceTrack[] = [
   {
-    period: "2026 — now",
-    role: "Research Assistant, IoT × ML Lab",
-    org: "Universitas [Kampus]",
-    location: "Bali",
-    note: "Edge inference untuk sensor lingkungan; sistem monitoring turbin angin kecil.",
-    kind: "work",
+    id: "education",
+    label: "Education",
+    items: [
+      {
+        period: "2025 — now",
+        role: "D-4 Teknologi Rekayasa Elektro",
+        org: "Universitas Gadjah Mada",
+        location: "Yogyakarta",
+      },
+      {
+        period: "2022 — 2025",
+        role: "SMA / IPA",
+        org: "SMA Negeri 1 Amlapura",
+        location: "Bali",
+      },
+    ],
   },
   {
-    period: "2025 — 2026",
-    role: "Freelance — Embedded & ML",
-    org: "Proyek mandiri",
-    location: "Remote",
-    note: "Integrasi ESP32, kontrol PID, dashboard realtime untuk klien UMKM.",
-    kind: "work",
+    id: "competition",
+    label: "Competition",
+    items: [
+      {
+        period: "2026 — now",
+        role: "PKM-KC — Desain Prototipe",
+        org: "Vortexa",
+        location: "SKM Jembatan",
+      },
+    ],
   },
   {
-    period: "2024 — 2025",
-    role: "Finalist, National Engineering Competition",
-    org: "Plaswa2Grow",
-    note: "Konversi limbah plastik jadi nutrisi tanaman — juara kategori hardware.",
-    kind: "work",
+    id: "organization",
+    label: "Organization",
+    items: [
+      {
+        period: "2022 — 2026",
+        role: "Member",
+        org: "Gemra Bali",
+      },
+      {
+        period: "2025 — now",
+        role: "Member",
+        org: "KOMATIK UGM",
+      },
+    ],
   },
   {
-    period: "2025 — now",
-    role: "D-4 Teknologi Rekayasa Elektro",
-    org: "Universitas Gadjah Mada",
-    location: "Yogyakarta",
-    note: "Minat: Power Distribution, Power Generation, Microcontroller.",
-    kind: "edu",
+    id: "work",
+    label: "Work",
+    items: [
+      {
+        period: "next",
+        role: "Belum ada pengalaman kerja formal",
+        org: "Fokus saat ini: proyek, kompetisi, dan organisasi",
+      },
+    ],
   },
 ]
