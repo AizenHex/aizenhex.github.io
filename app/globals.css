@@ -234,6 +234,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 28px;
+  padding-top: 22px;
   list-style: none;
 }
 
@@ -329,7 +330,7 @@ body {
   }
 
   .exp-track-line {
-    top: 110px;
+    top: 132px;
     left: 14px;
   }
 }
