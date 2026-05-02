@@ -26,29 +26,29 @@ type TerminalEntry = {
 }
 
 const APPS: DesktopApp[] = [
-  { id: "apps", label: "Apps", icon: "AP", title: "App Launcher", size: "md:w-[430px]" },
-  { id: "mail", label: "Mail", icon: "@", title: "Mail", size: "md:w-[540px]" },
-  { id: "links", label: "Links", icon: "#", title: "Link Hub", size: "md:w-[440px]" },
-  { id: "profile", label: "Profile", icon: "ID", title: "Profile Card", size: "md:w-[420px]" },
-  { id: "terminal", label: "Terminal", icon: ">_", title: "Terminal", size: "md:w-[560px]" },
+  { id: "apps", label: "Apps", icon: "AP", title: "App Launcher", size: "lg:w-[420px]" },
+  { id: "mail", label: "Mail", icon: "@", title: "Mail", size: "lg:w-[520px]" },
+  { id: "links", label: "Links", icon: "#", title: "Link Hub", size: "lg:w-[420px]" },
+  { id: "profile", label: "Profile", icon: "ID", title: "Profile Card", size: "lg:w-[400px]" },
+  { id: "terminal", label: "Terminal", icon: ">_", title: "Terminal", size: "lg:w-[540px]" },
 ]
 
-const INITIAL_OPEN_APPS: AppId[] = ["apps", "mail", "terminal"]
+const INITIAL_OPEN_APPS: AppId[] = ["apps", "terminal"]
 
 const INITIAL_POSITIONS: Record<AppId, WindowPosition> = {
-  apps: { x: 132, y: 96 },
-  mail: { x: 316, y: 78 },
-  links: { x: 388, y: 174 },
-  profile: { x: 164, y: 242 },
-  terminal: { x: 238, y: 232 },
+  apps: { x: 128, y: 86 },
+  mail: { x: 468, y: 90 },
+  links: { x: 500, y: 168 },
+  profile: { x: 176, y: 252 },
+  terminal: { x: 492, y: 212 },
 }
 
 const INITIAL_Z_ORDER: Record<AppId, number> = {
   apps: 14,
-  mail: 16,
-  links: 10,
-  profile: 11,
-  terminal: 18,
+  mail: 12,
+  links: 11,
+  profile: 10,
+  terminal: 16,
 }
 
 const INITIAL_TERMINAL: TerminalEntry[] = [
@@ -56,13 +56,17 @@ const INITIAL_TERMINAL: TerminalEntry[] = [
     output: [
       "contactOS terminal ready",
       "type help to list commands",
-      "hint: some names unlock hidden modes",
+      "secret: try a name without spaces",
     ],
   },
 ]
 
-function appById(id: AppId) {
-  return APPS.find((app) => app.id === id)!
+function getApp(appId: AppId) {
+  return APPS.find((app) => app.id === appId)!
+}
+
+function slugTitle(title: string) {
+  return title.toLowerCase().replaceAll(" ", "-")
 }
 
 export function Contact() {
@@ -73,10 +77,13 @@ export function Contact() {
   const [zOrder, setZOrder] = useState<Record<AppId, number>>(INITIAL_Z_ORDER)
   const [terminalEntries, setTerminalEntries] = useState<TerminalEntry[]>(INITIAL_TERMINAL)
   const [terminalInput, setTerminalInput] = useState("")
-  const [isDesktop, setIsDesktop] = useState(false)
+  const [desktopMode, setDesktopMode] = useState(false)
   const [clock, setClock] = useState("")
   const [easterEggUnlocked, setEasterEggUnlocked] = useState(false)
   const [pulseKey, setPulseKey] = useState(0)
+  const desktopRef = useRef<HTMLDivElement>(null)
+  const terminalBodyRef = useRef<HTMLDivElement>(null)
+  const windowRefs = useRef<Partial<Record<AppId, HTMLDivElement | null>>>({})
   const dragRef = useRef<{
     appId: AppId
     startX: number
@@ -85,9 +92,16 @@ export function Contact() {
     originY: number
   } | null>(null)
 
+  const visibleApps = openApps.filter((appId) => !minimizedApps.includes(appId))
+  const renderedApps = desktopMode
+    ? visibleApps
+    : visibleApps.includes(activeApp)
+      ? [activeApp]
+      : visibleApps.slice(-1)
+
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 768px)")
-    const update = () => setIsDesktop(media.matches)
+    const media = window.matchMedia("(min-width: 1024px)")
+    const update = () => setDesktopMode(media.matches)
     update()
     media.addEventListener("change", update)
     return () => media.removeEventListener("change", update)
@@ -106,34 +120,72 @@ export function Contact() {
     return () => window.clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    if (!terminalBodyRef.current) return
+    terminalBodyRef.current.scrollTop = terminalBodyRef.current.scrollHeight
+  }, [terminalEntries])
+
+  const clampPosition = useCallback((appId: AppId, position: WindowPosition) => {
+    const desktop = desktopRef.current
+    const win = windowRefs.current[appId]
+    if (!desktop || !win) {
+      return {
+        x: Math.max(18, position.x),
+        y: Math.max(56, position.y),
+      }
+    }
+
+    const maxX = Math.max(18, desktop.clientWidth - win.offsetWidth - 18)
+    const maxY = Math.max(56, desktop.clientHeight - win.offsetHeight - 88)
+
+    return {
+      x: Math.min(Math.max(position.x, 18), maxX),
+      y: Math.min(Math.max(position.y, 56), maxY),
+    }
+  }, [])
+
   const focusApp = useCallback((appId: AppId) => {
     setOpenApps((current) => current.includes(appId) ? current : [...current, appId])
     setMinimizedApps((current) => current.filter((id) => id !== appId))
     setActiveApp(appId)
     setZOrder((current) => ({ ...current, [appId]: Math.max(...Object.values(current)) + 1 }))
-  }, [])
+    setPositions((current) => ({ ...current, [appId]: clampPosition(appId, current[appId]) }))
+  }, [clampPosition])
 
   const minimizeApp = useCallback((appId: AppId) => {
     setMinimizedApps((current) => current.includes(appId) ? current : [...current, appId])
     setActiveApp((current) => {
       if (current !== appId) return current
-      const next = openApps.find((id) => id !== appId && !minimizedApps.includes(id))
-      return next ?? "apps"
+      const next = openApps.filter((id) => id !== appId && !minimizedApps.includes(id)).at(-1)
+      return next ?? appId
     })
   }, [minimizedApps, openApps])
 
   const closeApp = useCallback((appId: AppId) => {
-    setOpenApps((current) => current.filter((id) => id !== appId))
-    setMinimizedApps((current) => current.filter((id) => id !== appId))
-    setActiveApp((current) => {
-      if (current !== appId) return current
-      const next = openApps.find((id) => id !== appId && !minimizedApps.includes(id))
-      return next ?? "apps"
-    })
+    const remaining = openApps.filter((id) => id !== appId)
+    const nextOpenApps = remaining.length > 0 ? remaining : ["apps" as AppId]
+    const nextActive = nextOpenApps.filter((id) => !minimizedApps.includes(id)).at(-1) ?? "apps"
+
+    setOpenApps(nextOpenApps)
+    setMinimizedApps((current) => current.filter((id) => id !== appId && nextOpenApps.includes(id)))
+    setActiveApp((current) => current === appId ? nextActive : current)
   }, [minimizedApps, openApps])
 
+  const toggleTaskbarApp = useCallback((appId: AppId) => {
+    const isOpen = openApps.includes(appId)
+    const isMinimized = minimizedApps.includes(appId)
+    const isActive = activeApp === appId && isOpen && !isMinimized
+
+    if (isActive) {
+      minimizeApp(appId)
+      return
+    }
+
+    focusApp(appId)
+  }, [activeApp, focusApp, minimizeApp, minimizedApps, openApps])
+
   const startDrag = useCallback((appId: AppId, event: React.MouseEvent) => {
-    if (!isDesktop || event.button !== 0) return
+    if (!desktopMode || event.button !== 0) return
     focusApp(appId)
     dragRef.current = {
       appId,
@@ -143,23 +195,19 @@ export function Contact() {
       originY: positions[appId].y,
     }
     event.preventDefault()
-  }, [focusApp, isDesktop, positions])
+  }, [desktopMode, focusApp, positions])
 
   useEffect(() => {
     const onMove = (event: MouseEvent) => {
       const drag = dragRef.current
       if (!drag) return
 
-      const nextX = drag.originX + event.clientX - drag.startX
-      const nextY = drag.originY + event.clientY - drag.startY
+      const nextPosition = clampPosition(drag.appId, {
+        x: drag.originX + event.clientX - drag.startX,
+        y: drag.originY + event.clientY - drag.startY,
+      })
 
-      setPositions((current) => ({
-        ...current,
-        [drag.appId]: {
-          x: Math.min(Math.max(nextX, 20), 620),
-          y: Math.min(Math.max(nextY, 54), 424),
-        },
-      }))
+      setPositions((current) => ({ ...current, [drag.appId]: nextPosition }))
     }
 
     const onUp = () => {
@@ -172,13 +220,28 @@ export function Contact() {
       window.removeEventListener("mousemove", onMove)
       window.removeEventListener("mouseup", onUp)
     }
-  }, [])
+  }, [clampPosition])
+
+  useEffect(() => {
+    if (!desktopMode) return
+    const frame = window.requestAnimationFrame(() => {
+      setPositions((current) => {
+        const next = { ...current }
+        for (const app of APPS) {
+          next[app.id] = clampPosition(app.id, current[app.id])
+        }
+        return next
+      })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [clampPosition, desktopMode, openApps])
 
   const runTerminalCommand = useCallback((rawCommand: string) => {
     const command = rawCommand.trim()
     const normalized = command.toUpperCase()
 
     if (!command) return
+
     if (normalized === "CLEAR") {
       setTerminalEntries([])
       return
@@ -195,11 +258,15 @@ export function Contact() {
           output: [
             "access granted",
             "reeyza mode unlocked",
-            " __  __    _    ____  _____   ____  _____ _____ ______   __  _    ",
-            "|  \\/  |  / \\  |  _ \\| ____| |  _ \\| ____| ____|  _ \\ \\ / / / \\   ",
-            "| |\\/| | / _ \\ | | | |  _|   | |_) |  _| |  _| | |_) \\ V / / _ \\  ",
-            "| |  | |/ ___ \\| |_| | |___  |  _ <| |___| |___|  __/ | | / ___ \\ ",
-            "|_|  |_/_/   \\_\\____/|_____| |_| \\_\\_____|_____|_|    |_|/_/   \\_\\",
+            " __  __    _    ____  _____ ",
+            "|  \\/  |  / \\  |  _ \\| ____|",
+            "| |\\/| | / _ \\ | | | |  _|  ",
+            "| |  | |/ ___ \\| |_| | |___ ",
+            "|_|  |_/_/   \\_\\____/|_____|",
+            "+----------------+",
+            "|  MADE REEYZA   |",
+            "+----------------+",
+            "reeyza mode online",
             "cross-domain mode: Elektro x ML x IoT",
           ],
         },
@@ -212,7 +279,11 @@ export function Contact() {
         ...current,
         {
           input: command,
-          output: ["commands: help, contact, links, clear", "secret: try a name without spaces"],
+          output: [
+            "commands: help, contact, links, clear",
+            "contact opens Mail",
+            "links opens Link Hub",
+          ],
         },
       ])
       return
@@ -265,7 +336,7 @@ export function Contact() {
             <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">
               launcher
             </p>
-            <h3 className="font-serif text-[1.7rem] leading-tight text-ink">Contact workspace</h3>
+            <h3 className="font-serif text-[1.65rem] leading-tight text-ink">Contact workspace</h3>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {APPS.filter((app) => app.id !== "apps").map((app) => (
@@ -283,7 +354,7 @@ export function Contact() {
             ))}
           </div>
           <p className="font-mono text-[11px] leading-5 text-ink-muted">
-            Tip: open Terminal and type <span className="text-accent">MADEREEYZA</span>.
+            Terminal accepts <span className="text-accent">help</span>, <span className="text-accent">contact</span>, and <span className="text-accent">links</span>.
           </p>
         </div>
       )
@@ -296,7 +367,7 @@ export function Contact() {
             <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">
               inbox / primary
             </p>
-            <h3 className="font-serif text-[clamp(1.45rem,3vw,2.1rem)] font-medium leading-tight text-ink">
+            <h3 className="font-serif text-[clamp(1.35rem,3vw,2rem)] font-medium leading-tight text-ink">
               Let&apos;s build, debug, or discuss something useful.
             </h3>
           </div>
@@ -367,8 +438,8 @@ export function Contact() {
     }
 
     return (
-      <div className="flex min-h-[260px] flex-col rounded-md border border-border bg-[#0a0d09] p-4 font-mono text-[12px] text-[#c8d4be] shadow-inner">
-        <div className="flex-1 space-y-2 overflow-hidden">
+      <div className="flex min-h-[270px] flex-col rounded-md border border-border bg-[#0a0d09] p-4 font-mono text-[12px] text-[#c8d4be] shadow-inner">
+        <div ref={terminalBodyRef} className="max-h-[250px] flex-1 space-y-2 overflow-y-auto pr-1">
           {terminalEntries.map((entry, index) => (
             <div key={`${entry.input ?? "boot"}-${index}`}>
               {entry.input && (
@@ -414,9 +485,10 @@ export function Contact() {
 
         <FadeIn delay={0.05}>
           <div
+            ref={desktopRef}
             className={[
-              "contact-os-shell relative min-h-[760px] overflow-hidden rounded-lg border border-border bg-surface/55 shadow-[0_30px_90px_rgba(0,0,0,0.18)] backdrop-blur",
-              "md:min-h-[640px] dark:bg-[#11140f]/88 dark:shadow-[0_36px_120px_rgba(0,0,0,0.42)]",
+              "contact-os-shell relative min-h-[720px] overflow-hidden rounded-lg border border-border bg-surface/55 shadow-[0_30px_90px_rgba(0,0,0,0.18)] backdrop-blur",
+              "lg:min-h-[640px] dark:bg-[#11140f]/88 dark:shadow-[0_36px_120px_rgba(0,0,0,0.42)]",
               easterEggUnlocked ? "reeyza-unlocked" : "",
             ].join(" ")}
           >
@@ -426,7 +498,7 @@ export function Contact() {
               <div className="flex items-center gap-3">
                 <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_16px_rgba(78,191,106,0.7)]" />
                 <span className="text-ink">contactOS</span>
-                <span className="hidden text-ink-muted sm:inline">workspace</span>
+                <span className="hidden text-ink-muted sm:inline">desktop</span>
               </div>
               <div className="hidden items-center gap-4 sm:flex">
                 <span>Made Reeyza</span>
@@ -436,7 +508,7 @@ export function Contact() {
               <span>{clock || "online"}</span>
             </div>
 
-            <div className="relative z-10 grid grid-cols-4 gap-3 p-4 md:absolute md:left-6 md:top-20 md:grid-cols-1 md:p-0">
+            <div className="relative z-10 grid grid-cols-5 gap-2 p-4 lg:absolute lg:left-6 lg:top-20 lg:grid-cols-1 lg:p-0">
               {APPS.map((app) => (
                 <button
                   key={app.id}
@@ -452,34 +524,40 @@ export function Contact() {
               ))}
             </div>
 
-            <div className="relative z-10 flex flex-col gap-4 px-4 pb-24 md:block md:px-0 md:pb-0">
-              {openApps.map((appId) => {
-                const app = appById(appId)
-                const isMinimized = minimizedApps.includes(appId)
-                const isActive = activeApp === appId && !isMinimized
+            <div className="relative z-10 flex flex-col gap-4 px-4 pb-24 lg:block lg:px-0 lg:pb-0">
+              {renderedApps.length === 0 && (
+                <div className="mx-auto mt-24 w-fit rounded-md border border-border bg-bg/80 px-4 py-3 font-mono text-[12px] text-ink-muted">
+                  all apps minimized. use the taskbar to restore.
+                </div>
+              )}
 
-                if (isMinimized) return null
+              {renderedApps.map((appId) => {
+                const app = getApp(appId)
+                const isActive = activeApp === appId
 
                 return (
                   <div
                     key={appId}
+                    ref={(node) => {
+                      windowRefs.current[appId] = node
+                    }}
                     onMouseDown={() => focusApp(appId)}
                     className={[
                       "relative overflow-hidden rounded-lg border bg-bg/94 shadow-[0_22px_70px_rgba(0,0,0,0.22)] backdrop-blur transition-[border-color,box-shadow,transform] duration-150",
-                      "md:absolute dark:bg-[#141710]/95",
+                      "lg:absolute dark:bg-[#141710]/95",
                       app.size,
                       isActive
                         ? "border-accent/55 shadow-[0_30px_90px_rgba(0,0,0,0.44)]"
                         : "border-border shadow-[0_18px_52px_rgba(0,0,0,0.24)]",
                     ].join(" ")}
-                    style={isDesktop ? {
+                    style={desktopMode ? {
                       left: positions[appId].x,
                       top: positions[appId].y,
                       zIndex: zOrder[appId],
                     } : undefined}
                   >
                     <div
-                      className="flex cursor-grab items-center gap-3 border-b border-border bg-surface/80 px-3 py-2.5 active:cursor-grabbing dark:bg-[#10130f]"
+                      className="flex items-center gap-3 border-b border-border bg-surface/80 px-3 py-2.5 dark:bg-[#10130f] lg:cursor-grab lg:active:cursor-grabbing"
                       onMouseDown={(event) => startDrag(appId, event)}
                     >
                       <div className="flex gap-1.5" onMouseDown={(event) => event.stopPropagation()}>
@@ -489,22 +567,36 @@ export function Contact() {
                             event.stopPropagation()
                             minimizeApp(appId)
                           }}
-                          className="h-3 w-3 rounded-sm border border-border bg-bg hover:border-accent"
+                          className="grid h-5 w-5 place-items-center rounded-sm border border-border bg-bg text-[10px] text-ink-muted transition hover:border-accent hover:text-accent"
                           aria-label={`Minimize ${app.label}`}
-                        />
-                        <span className="h-3 w-3 rounded-sm border border-border bg-bg" />
+                        >
+                          _
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            focusApp(appId)
+                          }}
+                          className="grid h-5 w-5 place-items-center rounded-sm border border-border bg-bg text-[10px] text-ink-muted transition hover:border-accent hover:text-accent"
+                          aria-label={`Focus ${app.label}`}
+                        >
+                          []
+                        </button>
                         <button
                           type="button"
                           onClick={(event) => {
                             event.stopPropagation()
                             closeApp(appId)
                           }}
-                          className="h-3 w-3 rounded-sm border border-accent/50 bg-accent/20 hover:bg-accent/35"
+                          className="grid h-5 w-5 place-items-center rounded-sm border border-accent/50 bg-accent/20 text-[10px] text-accent transition hover:bg-accent/35"
                           aria-label={`Close ${app.label}`}
-                        />
+                        >
+                          x
+                        </button>
                       </div>
                       <span className="min-w-0 flex-1 truncate text-center font-mono text-[11px] text-ink-muted">
-                        contactOS://{app.title.toLowerCase().replaceAll(" ", "-")}
+                        contactOS://{slugTitle(app.title)}
                       </span>
                       <span className="hidden font-mono text-[10px] uppercase tracking-[0.12em] text-accent sm:inline">
                         {isActive ? "active" : "idle"}
@@ -520,7 +612,7 @@ export function Contact() {
             </div>
 
             {easterEggUnlocked && (
-              <div className="absolute bottom-[86px] right-5 z-30 hidden rounded-md border border-accent/35 bg-bg/82 px-3 py-2 font-mono text-[11px] text-accent shadow-[0_12px_32px_rgba(0,0,0,0.28)] backdrop-blur md:block">
+              <div className="absolute bottom-[86px] right-5 z-30 hidden rounded-md border border-accent/35 bg-bg/82 px-3 py-2 font-mono text-[11px] text-accent shadow-[0_12px_32px_rgba(0,0,0,0.28)] backdrop-blur lg:block">
                 cross-domain mode: Elektro x ML x IoT
               </div>
             )}
@@ -535,20 +627,21 @@ export function Contact() {
                   <button
                     key={app.id}
                     type="button"
-                    onClick={() => focusApp(app.id)}
-                    title={app.label}
+                    onClick={() => toggleTaskbarApp(app.id)}
+                    title={isActive ? `Minimize ${app.label}` : `Open ${app.label}`}
                     className={[
-                      "relative grid h-10 w-10 shrink-0 place-items-center rounded-md border font-mono text-[11px] transition",
+                      "relative flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 font-mono text-[11px] transition",
                       isActive
                         ? "border-accent bg-accent/12 text-accent"
                         : "border-border text-ink-muted hover:border-accent hover:text-accent",
                     ].join(" ")}
                   >
-                    {app.icon}
+                    <span>{app.icon}</span>
+                    <span className="hidden sm:inline">{app.label}</span>
                     {isOpen && (
                       <span
                         className={[
-                          "absolute bottom-1 h-1 w-1 rounded-full",
+                          "absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full",
                           isMinimized ? "bg-ink-muted" : "bg-accent",
                         ].join(" ")}
                       />
