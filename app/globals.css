@@ -49,12 +49,17 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 body {
   background-color: var(--bg);
   color: var(--ink);
   font-family: var(--font-mono);
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   transition: background-color 200ms ease, color 200ms ease;
 }
 
@@ -367,9 +372,64 @@ body {
   100% { transform: translateX(calc(100vw + 80px)); opacity: 0; }
 }
 
+/* Contact mini OS */
+.contact-os-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(color-mix(in srgb, var(--accent) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 10%, transparent) 1px, transparent 1px),
+    radial-gradient(circle at 70% 22%, color-mix(in srgb, var(--accent-hover) 12%, transparent), transparent 28%),
+    radial-gradient(circle at 26% 80%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 30%);
+  background-size: 34px 34px, 34px 34px, auto, auto;
+  opacity: 0.34;
+}
+
+.contact-os-shell.reeyza-unlocked::before {
+  opacity: 0.5;
+}
+
+.reeyza-pulse {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 80%, transparent);
+  animation: reeyzaPulse 1400ms ease-out;
+}
+
+@keyframes reeyzaPulse {
+  0% {
+    opacity: 0;
+    box-shadow: inset 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+  20% {
+    opacity: 1;
+    box-shadow:
+      inset 0 0 90px color-mix(in srgb, var(--accent) 22%, transparent),
+      inset 0 0 160px color-mix(in srgb, var(--accent-hover) 14%, transparent);
+  }
+  100% {
+    opacity: 0;
+    box-shadow: inset 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+
 /* ── Scroll-hide scrollbars ── */
-::-webkit-scrollbar { display: none; }
-* { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
